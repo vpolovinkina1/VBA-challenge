@@ -1,0 +1,105 @@
+Sub StockAnalysis()
+    Dim GreatestIncrease As Double
+    Dim GreatestDecrease As Double
+    Dim GreatestCount As Double
+    Dim GreatestIncreaseTicker As String
+    Dim GreatestDecreaseTicker As String
+    Dim GreatestCountTicker As String
+    
+    ' Worksheet loop
+    Dim ws As Worksheet
+    For Each ws In Worksheets
+
+        Dim FirstValue As Long
+        Dim LastRow As Long
+        Dim OpenPrice As Double
+        Dim ClosePrice As Double
+        Dim StockVolumeCount As Double
+        
+        FirstValue = 2
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        OpenPrice = ws.Cells(2, 3).Value
+        StockVolumeCount = 0
+        
+        ' Add headers for summary table
+        ws.Range("I1").Value = "Ticker"
+        ws.Range("J1").Value = "Quarterly Change"
+        ws.Range("K1").Value = "Percent Change"
+        ws.Range("L1").Value = "Total Stock Count"
+        
+        ' Loop through all rows
+        Dim i As Long
+        For i = 2 To LastRow
+            StockVolumeCount = StockVolumeCount + ws.Cells(i, 7).Value
+            
+            ' Check for next ticker or LastRow
+        Dim QuarterlyChange As Double
+        Dim PercentChange As Double
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                ClosePrice = ws.Cells(i, 6).Value
+                QuarterlyChange = ClosePrice - OpenPrice
+                If OpenPrice <> 0 Then
+                    PercentChange = (QuarterlyChange / OpenPrice) * 100
+                Else
+                    PercentChange = 0
+                End If
+                
+                ' Output results to summary table
+                ws.Cells(FirstValue, 9).Value = ws.Cells(i, 1).Value
+                ws.Cells(FirstValue, 10).Value = QuarterlyChange
+                ws.Cells(FirstValue, 11).Value = PercentChange
+                ws.Cells(FirstValue, 12).Value = StockVolumeCount
+                
+                ' Conditional formatting
+                If QuarterlyChange > 0 Then
+                    ws.Cells(FirstValue, 10).Interior.ColorIndex = 4 ' Green
+                ElseIf QuarterlyChange < 0 Then
+                    ws.Cells(FirstValue, 10).Interior.ColorIndex = 3 ' Red
+                End If
+                
+                ' Update greatest increase/decrease/Count
+                If PercentChange > GreatestIncrease Then
+                    GreatestIncrease = PercentChange
+                    GreatestIncreaseTicker = ws.Cells(i, 1).Value
+                End If
+                
+                If PercentChange < GreatestDecrease Then
+                    GreatestDecrease = PercentChange
+                    GreatestDecreaseTicker = ws.Cells(i, 1).Value
+                End If
+                
+                If StockVolumeCount > GreatestCount Then
+                    GreatestCount = StockVolumeCount
+                    GreatestCountTicker = ws.Cells(i, 1).Value
+                End If
+                
+                ' Reset for next stock
+                FirstValue = FirstValue + 1
+                OpenPrice = ws.Cells(i + 1, 3).Value
+                StockVolumeCount = 0
+            End If
+        Next i
+        
+        ' Display greatest values
+        ws.Cells(1, 15).Value = "Ticker"
+        ws.Cells(1, 16).Value = "Value"
+        ws.Cells(2, 14).Value = "Greatest % Increase"
+        ws.Cells(2, 15).Value = GreatestIncreaseTicker
+        ws.Cells(2, 16).Value = GreatestIncrease
+        ws.Cells(3, 14).Value = "Greatest % Decrease"
+        ws.Cells(3, 15).Value = GreatestDecreaseTicker
+        ws.Cells(3, 16).Value = GreatestDecrease
+        ws.Cells(4, 14).Value = "Greatest Total Count"
+        ws.Cells(4, 15).Value = GreatestCountTicker
+        ws.Cells(4, 16).Value = GreatestCount
+        
+    ' Format Percent Change and Value columns to show percentage with two decimal places
+    ws.Columns(11).NumberFormat = "0.00\%"
+    ws.Columns(16).NumberFormat = "0.00\%"
+
+    ws.Columns("I:P").AutoFit
+
+    Next ws
+
+End Sub
+
